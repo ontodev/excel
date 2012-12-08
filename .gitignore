@@ -1,6 +1,7 @@
 pom.xml
 *jar
+.DS_Store
 /lib/
 /classes/
-/targets/
+/target/
 .lein-deps-sum
