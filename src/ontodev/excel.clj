@@ -11,7 +11,7 @@
             [clojure.string :as string]
             [clojure.java.io :as io])
   (:import
-    (org.apache.poi.ss.usermodel Cell Row Sheet Workbook DateUtil)
+    (org.apache.poi.ss.usermodel Cell Row Sheet Workbook DateUtil WorkbookFactory)
     (org.apache.poi.xssf.usermodel XSSFWorkbook)))
 
 ;; ## Cells
@@ -121,5 +121,5 @@
   "Load a workbook from a string path."
   [path]
   (log/info "Loading workbook:" path)
-  (doto (XSSFWorkbook. (io/input-stream path))
+  (doto (WorkbookFactory/create (io/input-stream path))
         (.setMissingCellPolicy Row/CREATE_NULL_AS_BLANK)))
