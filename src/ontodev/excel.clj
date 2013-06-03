@@ -105,14 +105,23 @@
 
 (defn read-sheet
   "Read a sheet from a workbook and return the data as a vector of maps."
+  ([workbook sheet-name] (read-sheet workbook sheet-name 1))
+  ([workbook sheet-name header-row] 
+   (log/debugf "Reading sheet '%s'" sheet-name)
+   (let [sheet   (.getSheet workbook sheet-name)
+         rows    (drop (- header-row 1) (iterator-seq (. sheet iterator)))
+         headers (map to-keyword (read-row (first rows))) 
+         data    (map read-row (rest rows))]
+     (log/debugf "Read %d rows" (count rows))
+     (vec (map (partial zipmap headers) data)))))
+
+(defn read-sheet-simple
+  "Read a sheet from a workbook as rows"
   [workbook sheet-name]
   (log/debugf "Reading sheet '%s'" sheet-name)
   (let [sheet   (.getSheet workbook sheet-name)
-        rows    (iterator-seq (. sheet iterator))
-        headers (map to-keyword (read-row (first rows))) 
-        data    (map read-row (rest rows))]
-    (log/debugf "Read %d rows" (count rows))
-    (vec (map (partial zipmap headers) data))))
+        rows    (iterator-seq (. sheet iterator))]
+    (vec rows)))
 
 ;; ## Workbooks
 ;; An `.xlsx` file contains one workbook with one or more sheets.
