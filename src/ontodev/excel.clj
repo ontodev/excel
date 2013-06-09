@@ -84,7 +84,7 @@
 (defn to-keyword
   "Take a string and return aa properly formatted keyword."
   [s]
-  (-> s
+  (-> (or s "")
       string/trim
       string/lower-case
       (string/replace #"\s+" "-")
@@ -115,13 +115,6 @@
      (log/debugf "Read %d rows" (count rows))
      (vec (map (partial zipmap headers) data)))))
 
-(defn read-sheet-simple
-  "Read a sheet from a workbook as rows"
-  [workbook sheet-name]
-  (log/debugf "Reading sheet '%s'" sheet-name)
-  (let [sheet   (.getSheet workbook sheet-name)
-        rows    (iterator-seq (. sheet iterator))]
-    (vec rows)))
 
 ;; ## Workbooks
 ;; An `.xlsx` file contains one workbook with one or more sheets.
