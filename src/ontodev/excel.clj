@@ -11,7 +11,7 @@
             [clojure.string :as string]
             [clojure.java.io :as io])
   (:import
-    (org.apache.poi.ss.usermodel Cell Row Sheet Workbook DateUtil)
+    (org.apache.poi.ss.usermodel Cell Row Sheet Workbook DateUtil WorkbookFactory)
     (org.apache.poi.xssf.usermodel XSSFWorkbook)))
 
 ;; ## Cells
@@ -84,7 +84,7 @@
 (defn to-keyword
   "Take a string and return aa properly formatted keyword."
   [s]
-  (-> s
+  (-> (or s "")
       string/trim
       string/lower-case
       (string/replace #"\s+" "-")
@@ -105,14 +105,16 @@
 
 (defn read-sheet
   "Read a sheet from a workbook and return the data as a vector of maps."
-  [workbook sheet-name]
-  (log/debugf "Reading sheet '%s'" sheet-name)
-  (let [sheet   (.getSheet workbook sheet-name)
-        rows    (iterator-seq (. sheet iterator))
-        headers (map to-keyword (read-row (first rows))) 
-        data    (map read-row (rest rows))]
-    (log/debugf "Read %d rows" (count rows))
-    (vec (map (partial zipmap headers) data))))
+  ([workbook sheet-name] (read-sheet workbook sheet-name 1))
+  ([workbook sheet-name header-row] 
+   (log/debugf "Reading sheet '%s'" sheet-name)
+   (let [sheet   (.getSheet workbook sheet-name)
+         rows    (drop (- header-row 1) (iterator-seq (. sheet iterator)))
+         headers (map to-keyword (read-row (first rows))) 
+         data    (map read-row (rest rows))]
+     (log/debugf "Read %d rows" (count rows))
+     (vec (map (partial zipmap headers) data)))))
+
 
 ;; ## Workbooks
 ;; An `.xlsx` file contains one workbook with one or more sheets.
@@ -121,5 +123,5 @@
   "Load a workbook from a string path."
   [path]
   (log/info "Loading workbook:" path)
-  (doto (XSSFWorkbook. (io/input-stream path))
+  (doto (WorkbookFactory/create (io/input-stream path))
         (.setMissingCellPolicy Row/CREATE_NULL_AS_BLANK)))
