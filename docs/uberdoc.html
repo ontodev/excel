@@ -3029,113 +3029,86 @@ net.brehaut.ClojureTools = (function (SH) {
     build_tree: build_tree
   };
 })(SyntaxHighlighter);
-</script><title>excel -- Marginalia</title></head><body><table><tr><td class="docs"><div class="header"><h1 class="project-name">excel</h1><h2 class="project-version">0.1.0</h2><br /><p>A thin Clojure wrapper around a small part of Apache POI for
+</script><title>ontodev/excel -- Marginalia</title></head><body><table><tr><td class="docs"><div class="header"><h1 class="project-name">ontodev/excel</h1><h2 class="project-version">0.2.2</h2><br /><p>A thin Clojure wrapper around a small part of Apache POI for
                 reading .xlsx files.</p>
 </div><div class="dependencies"><h3>dependencies</h3><table><tr><td class="dep-name">org.clojure/clojure</td><td class="dotted"><hr /></td><td class="dep-version">1.4.0</td></tr><tr><td class="dep-name">org.clojure/tools.logging</td><td class="dotted"><hr /></td><td class="dep-version">0.2.4</td></tr><tr><td class="dep-name">org.apache.poi/poi-ooxml</td><td class="dotted"><hr /></td><td class="dep-version">3.8</td></tr></table></div></td><td class="codes" style="text-align: center; vertical-align: middle;color: #666;padding-right:20px"><br /><br /><br />(this space intentionally left almost blank)</td></tr><tr><td class="docs"><div class="toc"><a name="toc"><h3>namespaces</h3></a><ul><li><a href="#ontodev.excel">ontodev.excel</a></li></ul></div></td><td class="codes">&nbsp;</td></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#ontodev.excel" name="ontodev.excel"><h1 class="project-name">ontodev.excel</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><h1>Excel Utilities</h1>
 
 <p>This file provides utility functions for reading <code>.xlsx</code> files.
-It's a wrapper around a small part of the 
+It's a wrapper around a small part of the
 <a href="http://poi.apache.org">Apache POI project</a>.
 See the <code>incanter-excel</code> module from the
-<a href="https://github.com/liebke/incanter">Incanter</a> project for more.</p>
-
-<p>The functions build from handling cells to rows, to sheets, to workbooks.</p>
+<a href="https://github.com/liebke/incanter">Incanter</a> project for a more
+thorough implementation.
+TODO: Dates are not handled.</p>
+</td><td class="codes"></td></tr><tr><td class="docs"><p>The function definitions progress from handling cells to rows, to sheets,
+to workbooks.</p>
 </td><td class="codes"><pre class="brush: clojure">(ns ontodev.excel
   (:require [clojure.tools.logging :as log]
             [clojure.string :as string]
             [clojure.java.io :as io])
   (:import
-    (org.apache.poi.ss.usermodel Cell Row Sheet Workbook DateUtil)
-    (org.apache.poi.xssf.usermodel XSSFWorkbook)))</pre></td></tr><tr><td class="docs"><h2>Cells</h2>
+    (org.apache.poi.ss.usermodel Cell Row Sheet Workbook WorkbookFactory)))</pre></td></tr><tr><td class="docs"><h2>Cells</h2>
 
-<p>This is the trickiest piece of the code -- it is not complete, nor is it
-well-tested. You can specify cell types in Excel, but these settings are
-often ignored, for instance in the case of a text cell containing just
-digits.
-We define a multimethod that switches on the cell type, then methods for
-each cell type.
-See <a href="">https://github.com/liebke/incanter/blob/master/modules/incanter-excel/src/incanter/excel</a></p>
-</td><td class="codes"></td></tr><tr><td class="docs"><p>Get the cell value depending on the cell type. Note that numeric cells
-   can also contain dates, so we handle this special case.</p>
-</td><td class="codes"><pre class="brush: clojure">(defmulti get-cell-value
-  (fn [cell]
-      (when (not= nil cell)
-        (let [ct (. cell getCellType)]
-          (if (not (= Cell/CELL_TYPE_NUMERIC ct))
-            ct
-            (if (DateUtil/isCellDateFormatted cell)
-              :date
-              ct))))))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defmethod get-cell-value Cell/CELL_TYPE_BLANK   [cell] nil)</pre></td></tr><tr><td class="docs"><p>This is a partial implementation that expects a numeric value.
-TODO: Handle cell types other than numeric.</p>
-</td><td class="codes"><pre class="brush: clojure">(defmethod get-cell-value Cell/CELL_TYPE_FORMULA [cell]
-  (let [val (.
-             (.. cell
-                 getSheet
-                 getWorkbook
-                 getCreationHelper
-                 createFormulaEvaluator)
-             evaluate cell)
-        evaluated-type (. val getCellType)]
-    (if (= 1 (.getDataFormat (.getCellStyle cell)))
-      (.intValue (. val getNumberValue))  
-      (. val getNumberValue))))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defmethod get-cell-value Cell/CELL_TYPE_BOOLEAN [cell]
-  (. cell getBooleanCellValue))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defmethod get-cell-value Cell/CELL_TYPE_STRING  [cell]
-  (. cell getStringCellValue))</pre></td></tr><tr><td class="docs"><p>Returns the value of a cell as a number, as far as possible. Handles two 
-special cases based on the CellStyle: integers, and cells that were
-specified as strings but then called numeric. The default result is a
-double.
-TODO: This implementation is incomplete.</p>
-</td><td class="codes"><pre class="brush: clojure">(defmethod get-cell-value Cell/CELL_TYPE_NUMERIC [cell]
-  (case (.getDataFormat (.getCellStyle cell))
-    1  (.intValue (.getNumericCellValue cell)) ; Integer
-    49 (str (.intValue (.getNumericCellValue cell))) ; Integer as string TODO: this might be a bad idea
-    (.getNumericCellValue cell))) ; default: Double</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defmethod get-cell-value :date [cell]
-  (. cell getDateCellValue))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defmethod get-cell-value :default [cell]
-  (str &quot;Unknown cell type &quot; (. cell getCellType)))</pre></td></tr><tr><td class="docs"><h2>Rows</h2>
+<p>I've found it hard to trust the Cell Type and Cell Style for data such as
+integers. In this version of the code I'm converting each cell to STRING
+type before reading it as a string and returning the string value.
+This should be the literal value typed into the cell, except in the case
+of formulae where it should be the result.
+Conversion of the strings to other data types should be done as an
+additional step.</p>
+</td><td class="codes"></td></tr><tr><td class="docs"><p>Get the value of a cell as a string, by changing the cell type to 'string'
+   and then changing it back.</p>
+</td><td class="codes"><pre class="brush: clojure">(defn get-cell-string-value
+  [cell]
+  (let [ct    (.getCellType cell)
+        _     (.setCellType cell Cell/CELL_TYPE_STRING)
+        value (.getStringCellValue cell)]
+    (.setCellType cell ct)
+    value))</pre></td></tr><tr><td class="docs"><h2>Rows</h2>
 
-<p>Rows are made up of cells. We consider the first row to be a header, and 
+<p>Rows are made up of cells. We consider the first row to be a header, and
 translate its values into keywords. Then we return each subsequent row
 as a map from keys to cell values.</p>
-</td><td class="codes"></td></tr><tr><td class="docs"><p>Take a string and return aa properly formatted keyword.</p>
+</td><td class="codes"></td></tr><tr><td class="docs"><p>Take a string and return a properly formatted keyword.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn to-keyword
   [s]
-  (-&gt; s
+  (-&gt; (or s &quot;&quot;)
       string/trim
       string/lower-case
       (string/replace #&quot;\s+&quot; &quot;-&quot;)
-      keyword))</pre></td></tr><tr><td class="docs"><p>Read all the cells in a row (including blanks) and return a list of values.</p>
-
-<p>Note that the row iterator just skips blank cells, so instead we use an
-uglier approach with a list comprehension. This relies on the workbook's
-setMissingCellPolicy above.
+      keyword))</pre></td></tr><tr><td class="docs"><p>Note: it would make sense to use the iterator for the row. However that
+iterator just skips blank cells! So instead we use an uglier approach with
+a list comprehension. This relies on the workbook's setMissingCellPolicy
+in <code>load-workbook</code>.
 See <code>incanter-excel</code> and <a href="">http://stackoverflow.com/questions/4929646/how-to-get-an-excel-blank-cell-value-in-apache-poi</a></p>
+</td><td class="codes"></td></tr><tr><td class="docs"><p>Read all the cells in a row (including blanks) and return a list of values.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn read-row
   [row]
   (for [i (range (.getFirstCellNum row) (.getLastCellNum row))]
-       (get-cell-value (.getCell row (.intValue i)))))</pre></td></tr><tr><td class="docs"><h2>Sheets</h2>
+       (get-cell-string-value (.getCell row (.intValue i)))))</pre></td></tr><tr><td class="docs"><h2>Sheets</h2>
 
 <p>Workbooks are made up of sheets, which are made up of rows.</p>
-</td><td class="codes"></td></tr><tr><td class="docs"><p>Read a sheet from a workbook and return the data as a vector of maps.</p>
+</td><td class="codes"></td></tr><tr><td class="docs"><p>Given a workbook with an optional sheet name (default is 'Sheet1') and
+   and optional header row number (default is '1'),
+   return the data in the sheet as a vector of maps
+   using the headers from the header row as the keys.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn read-sheet
-  [workbook sheet-name]
-  (log/debugf &quot;Reading sheet '%s'&quot; sheet-name)
-  (let [sheet   (.getSheet workbook sheet-name)
-        rows    (iterator-seq (. sheet iterator))
-        headers (map to-keyword (read-row (first rows))) 
-        data    (map read-row (rest rows))]
-    (log/debugf &quot;Read %d rows&quot; (count rows))
-    (vec (map (partial zipmap headers) data))))</pre></td></tr><tr><td class="docs"><h2>Workbooks</h2>
+  ([workbook] (read-sheet workbook &quot;Sheet1&quot; 1))
+  ([workbook sheet-name] (read-sheet workbook sheet-name 1))
+  ([workbook sheet-name header-row]
+   (log/debugf &quot;Reading sheet '%s'&quot; sheet-name)
+   (let [sheet   (.getSheet workbook sheet-name)
+         rows    (-&gt;&gt; sheet (.iterator) iterator-seq (drop (dec header-row)))
+         headers (map to-keyword (read-row (first rows)))
+         data    (map read-row (rest rows))]
+     (log/debugf &quot;Read %d rows&quot; (count rows))
+     (vec (map (partial zipmap headers) data)))))</pre></td></tr><tr><td class="docs"><h2>Workbooks</h2>
 
 <p>An <code>.xlsx</code> file contains one workbook with one or more sheets.</p>
 </td><td class="codes"></td></tr><tr><td class="docs"><p>Load a workbook from a string path.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn load-workbook
   [path]
   (log/info &quot;Loading workbook:&quot; path)
-  (doto (XSSFWorkbook. (io/input-stream path))
+  (doto (WorkbookFactory/create (io/input-stream path))
         (.setMissingCellPolicy Row/CREATE_NULL_AS_BLANK)))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr></table><div class="footer">Generated by <a href="https://github.com/fogus/marginalia">Marginalia</a>.&nbsp;&nbsp;Syntax highlighting provided by Alex Gorbatchev's <a href="http://alexgorbatchev.com/SyntaxHighlighter/">SyntaxHighlighter</a></div><script type="text/javascript">SyntaxHighlighter.defaults['gutter'] = false;
        SyntaxHighlighter.all()</script></body></html>

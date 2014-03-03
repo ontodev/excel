@@ -8,7 +8,7 @@ For a more complete implementation, see the `incanter-excel` module from the [In
 
 Add `ontodev/excel` to your [Leiningen](http://leiningen.org/) project dependencies:
 
-    [ontodev/excel "0.1.0"]
+    [ontodev/excel "0.2.2"]
 
 Then `require` the namespace:
 
@@ -23,7 +23,7 @@ Use it to load a workbook and read sheets:
 
 ## License
 
-Copyright © 2012, James A. Overton
+Copyright © 2014, James A. Overton
 
 Distributed under the Simplified BSD License: [http://opensource.org/licenses/BSD-2-Clause]()
 
