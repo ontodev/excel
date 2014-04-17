@@ -58,7 +58,7 @@
 (defn read-row
   "Read all the cells in a row (including blanks) and return a list of values."
   [row]
-  (for [i (range (.getFirstCellNum row) (.getLastCellNum row))]
+  (for [i (range 0 (.getLastCellNum row))]
        (get-cell-string-value (.getCell row (.intValue i)))))
 
 ;; ## Sheets
