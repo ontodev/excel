@@ -80,6 +80,12 @@
      (log/debugf "Read %d rows" (count rows))
      (vec (map (partial zipmap headers) data)))))
 
+(defn list-sheets
+  "Return a list of all sheet names."
+  [workbook]
+  (for [i (range (.getNumberOfSheets workbook))]
+    (.getSheetName workbook i)))
+
 ;; ## Workbooks
 ;; An `.xlsx` file contains one workbook with one or more sheets.
 

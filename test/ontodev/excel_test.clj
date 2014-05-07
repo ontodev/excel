@@ -11,5 +11,5 @@
 
 (let [workbook (load-workbook "resources/test.xlsx")
       data     (read-sheet workbook)]
-  (doall (map check-row data)))
-
+  (doall (map check-row data))
+  (fact "sheet names" (list-sheets workbook) => (just ["Sheet1" "Foo" "Bar"])))
