@@ -87,6 +87,7 @@
     (.getSheetName workbook i)))
 
 (defn sheet-headers
+  "Returns the headers (in their original forms, not as keywords) for a given sheet."
   [workbook sheet-name]
   (let [sheet (.getSheet workbook sheet-name)
         rows (->> sheet (.iterator) iterator-seq)]
