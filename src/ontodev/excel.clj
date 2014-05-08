@@ -86,6 +86,12 @@
   (for [i (range (.getNumberOfSheets workbook))]
     (.getSheetName workbook i)))
 
+(defn sheet-headers
+  [workbook sheet-name]
+  (let [sheet (.getSheet workbook sheet-name)
+        rows (->> sheet (.iterator) iterator-seq)]
+    (map to-keyword (read-row (first rows)))))
+
 ;; ## Workbooks
 ;; An `.xlsx` file contains one workbook with one or more sheets.
 
