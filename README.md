@@ -8,7 +8,7 @@ For a more complete implementation, see the `incanter-excel` module from the [In
 
 Add `ontodev/excel` to your [Leiningen](http://leiningen.org/) project dependencies:
 
-    [ontodev/excel "0.2.2"]
+    [ontodev/excel "0.2.3"]
 
 Then `require` the namespace:
 
