@@ -3029,9 +3029,9 @@ net.brehaut.ClojureTools = (function (SH) {
     build_tree: build_tree
   };
 })(SyntaxHighlighter);
-</script><title>ontodev/excel -- Marginalia</title></head><body><table><tr><td class="docs"><div class="header"><h1 class="project-name">ontodev/excel</h1><h2 class="project-version">0.2.2</h2><br /><p>A thin Clojure wrapper around a small part of Apache POI for
+</script><title>ontodev/excel -- Marginalia</title></head><body><table><tr><td class="docs"><div class="header"><h1 class="project-name">ontodev/excel</h1><h2 class="project-version">0.2.3</h2><br /><p>A thin Clojure wrapper around a small part of Apache POI for
                 reading .xlsx files.</p>
-</div><div class="dependencies"><h3>dependencies</h3><table><tr><td class="dep-name">org.clojure/clojure</td><td class="dotted"><hr /></td><td class="dep-version">1.4.0</td></tr><tr><td class="dep-name">org.clojure/tools.logging</td><td class="dotted"><hr /></td><td class="dep-version">0.2.4</td></tr><tr><td class="dep-name">org.apache.poi/poi-ooxml</td><td class="dotted"><hr /></td><td class="dep-version">3.8</td></tr></table></div></td><td class="codes" style="text-align: center; vertical-align: middle;color: #666;padding-right:20px"><br /><br /><br />(this space intentionally left almost blank)</td></tr><tr><td class="docs"><div class="toc"><a name="toc"><h3>namespaces</h3></a><ul><li><a href="#ontodev.excel">ontodev.excel</a></li></ul></div></td><td class="codes">&nbsp;</td></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#ontodev.excel" name="ontodev.excel"><h1 class="project-name">ontodev.excel</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><h1>Excel Utilities</h1>
+</div><div class="dependencies"><h3>dependencies</h3><table><tr><td class="dep-name">org.clojure/clojure</td><td class="dotted"><hr /></td><td class="dep-version">1.5.1</td></tr><tr><td class="dep-name">org.clojure/tools.logging</td><td class="dotted"><hr /></td><td class="dep-version">0.2.6</td></tr><tr><td class="dep-name">org.apache.poi/poi-ooxml</td><td class="dotted"><hr /></td><td class="dep-version">3.8</td></tr></table></div></td><td class="codes" style="text-align: center; vertical-align: middle;color: #666;padding-right:20px"><br /><br /><br />(this space intentionally left almost blank)</td></tr><tr><td class="docs"><div class="toc"><a name="toc"><h3>namespaces</h3></a><ul><li><a href="#ontodev.excel">ontodev.excel</a></li></ul></div></td><td class="codes">&nbsp;</td></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#ontodev.excel" name="ontodev.excel"><h1 class="project-name">ontodev.excel</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><h1>Excel Utilities</h1>
 
 <p>This file provides utility functions for reading <code>.xlsx</code> files.
 It's a wrapper around a small part of the
@@ -3084,7 +3084,7 @@ See <code>incanter-excel</code> and <a href="">http://stackoverflow.com/question
 </td><td class="codes"></td></tr><tr><td class="docs"><p>Read all the cells in a row (including blanks) and return a list of values.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn read-row
   [row]
-  (for [i (range (.getFirstCellNum row) (.getLastCellNum row))]
+  (for [i (range 0 (.getLastCellNum row))]
        (get-cell-string-value (.getCell row (.intValue i)))))</pre></td></tr><tr><td class="docs"><h2>Sheets</h2>
 
 <p>Workbooks are made up of sheets, which are made up of rows.</p>
@@ -3102,7 +3102,16 @@ See <code>incanter-excel</code> and <a href="">http://stackoverflow.com/question
          headers (map to-keyword (read-row (first rows)))
          data    (map read-row (rest rows))]
      (log/debugf &quot;Read %d rows&quot; (count rows))
-     (vec (map (partial zipmap headers) data)))))</pre></td></tr><tr><td class="docs"><h2>Workbooks</h2>
+     (vec (map (partial zipmap headers) data)))))</pre></td></tr><tr><td class="docs"><p>Return a list of all sheet names.</p>
+</td><td class="codes"><pre class="brush: clojure">(defn list-sheets
+  [workbook]
+  (for [i (range (.getNumberOfSheets workbook))]
+    (.getSheetName workbook i)))</pre></td></tr><tr><td class="docs"><p>Returns the headers (in their original forms, not as keywords) for a given sheet.</p>
+</td><td class="codes"><pre class="brush: clojure">(defn sheet-headers
+  [workbook sheet-name]
+  (let [sheet (.getSheet workbook sheet-name)
+        rows (-&gt;&gt; sheet (.iterator) iterator-seq)]
+    (read-row (first rows))))</pre></td></tr><tr><td class="docs"><h2>Workbooks</h2>
 
 <p>An <code>.xlsx</code> file contains one workbook with one or more sheets.</p>
 </td><td class="codes"></td></tr><tr><td class="docs"><p>Load a workbook from a string path.</p>
