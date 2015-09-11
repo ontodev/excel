@@ -99,7 +99,7 @@
 (defn load-workbook
   "Load a workbook from a string path."
   [path]
-  (log/info "Loading workbook:" path)
+  (log/debugf "Loading workbook:" path)
   (doto (WorkbookFactory/create (io/input-stream path))
         (.setMissingCellPolicy Row/CREATE_NULL_AS_BLANK)))
 
