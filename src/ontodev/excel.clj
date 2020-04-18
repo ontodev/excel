@@ -66,16 +66,18 @@
 
 (defn read-sheet
   "Given a workbook with an optional sheet name (default is 'Sheet1') and
-   and optional header row number (default is '1'),
+   and optional header row number (default is '1') and optional function to parse headers
    return the data in the sheet as a vector of maps
    using the headers from the header row as the keys."
   ([workbook] (read-sheet workbook "Sheet1" 1))
   ([workbook sheet-name] (read-sheet workbook sheet-name 1))
   ([workbook sheet-name header-row]
+   (read-sheet workbook sheet-name header-row to-keyword))
+  ([workbook sheet-name header-row parse-header-fn]
    (log/debugf "Reading sheet '%s'" sheet-name)
    (let [sheet   (.getSheet workbook sheet-name)
          rows    (->> sheet (.iterator) iterator-seq (drop (dec header-row)))
-         headers (map to-keyword (read-row (first rows)))
+         headers (map parse-header-fn (read-row (first rows)))
          data    (map read-row (rest rows))]
      (log/debugf "Read %d rows" (count rows))
      (vec (map (partial zipmap headers) data)))))
