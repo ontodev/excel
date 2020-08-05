@@ -4,11 +4,11 @@
   :url "http://github.com/ontodev/excel"
   :license {:name "Simplified BSD License"
             :url "http://opensource.org/licenses/BSD-2-Clause"}
-  :dependencies [[org.clojure/clojure "1.5.1"]
+  :dependencies [[org.clojure/clojure "1.10.1"]
                  [org.clojure/tools.logging "0.2.6"]
-                 [org.apache.poi/poi-ooxml "3.8"]]
+                 [org.apache.poi/poi-ooxml "4.1.2"]]
   :profiles
-  {:dev {:dependencies [[midje "1.6.3"]
+  {:dev {:dependencies [[midje "1.9.9"]
                         [lazytest "1.2.3"]]
          :plugins [[lein-midje "3.1.3"]
                    [lein-marginalia "0.7.1"]]}})
