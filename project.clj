@@ -1,4 +1,4 @@
-(defproject ontodev/excel "0.2.6"
+(defproject ontodev/excel "0.2.7"
   :description "A thin Clojure wrapper around a small part of Apache POI for
                 reading .xlsx files."
   :url "http://github.com/ontodev/excel"
