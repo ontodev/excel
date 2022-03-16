@@ -51,6 +51,7 @@
       string/trim
       string/lower-case
       (string/replace #"\s+" "-")
+      not-empty
       keyword))
 
 ;; Note: it would make sense to use the iterator for the row. However that
